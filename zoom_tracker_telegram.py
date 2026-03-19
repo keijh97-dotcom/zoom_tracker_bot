@@ -97,6 +97,18 @@ def parse_tracking(html, url=""):
         if val and val != "N/A":
             data["numero_guia"] = val
             
+    if data["numero_guia"] == "N/A" or not data["numero_guia"]:
+        td_titulo = soup.find("td", string=lambda text: text and "N° DE GUÍA" in text.upper())
+        if not td_titulo:
+            td_titulo = soup.find("td", class_="titulo", string=lambda text: text and "DE GUÍA" in text.upper())
+            
+        if td_titulo:
+            next_td = td_titulo.find_next_sibling("td")
+            if next_td:
+                val = next_td.get_text(strip=True)
+                if val:
+                    data["numero_guia"] = val
+
     if (data["numero_guia"] == "N/A" or not data["numero_guia"]) and url:
         data["numero_guia"] = extract_guia_from_url(url)
     
