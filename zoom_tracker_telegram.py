@@ -23,7 +23,7 @@ TOKEN = os.getenv("TELEGRAM_TOKEN")
 
 if not TOKEN:
     raise ValueError("TELEGRAM_TOKEN no está configurado. Crea un archivo .env con tu token.")
-STATE_FILE = "tracking_state.json"
+STATE_FILE = os.getenv("STORAGE_PATH", "tracking_state.json")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
