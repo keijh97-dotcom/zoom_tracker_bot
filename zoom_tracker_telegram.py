@@ -487,7 +487,9 @@ def main():
     application.add_handler(CommandHandler("start", start))
     application.add_handler(conv_handler)
     application.add_handler(CommandHandler("paquetes", listar_paquetes))
+    application.add_handler(MessageHandler(filters.Regex("^📋 Ver paquetes$"), listar_paquetes))
     application.add_handler(CommandHandler("detener", detener))
+    application.add_handler(MessageHandler(filters.Regex("^❌ Detener$"), detener))
     application.add_handler(CommandHandler("estado", estado_paquete))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_detener_response))
     
