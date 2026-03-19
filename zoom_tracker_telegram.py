@@ -6,6 +6,7 @@ import hashlib
 from datetime import datetime
 import os
 import asyncio
+import redis
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
     Application,
@@ -34,15 +35,36 @@ AWAITING_LINK = 1
 
 TRACKING_INTERVAL = 1800
 
+REDIS_URL = os.getenv("REDIS_URL")
+if REDIS_URL:
+    redis_client = redis.from_url(REDIS_URL, decode_responses=True)
+else:
+    redis_client = None
+
 def load_state():
-    if os.path.exists(STATE_FILE):
-        with open(STATE_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {"packages": {}, "tracking_tasks": {}}
+    if redis_client:
+        try:
+            data = redis_client.get("bot_state")
+            if data:
+                return json.loads(data)
+        except Exception as e:
+            print(f"Error loading from Redis: {e}")
+        return {"packages": {}, "tracking_tasks": {}}
+    else:
+        if os.path.exists(STATE_FILE):
+            with open(STATE_FILE, "r", encoding="utf-8") as f:
+                return json.load(f)
+        return {"packages": {}, "tracking_tasks": {}}
 
 def save_state(state):
-    with open(STATE_FILE, "w", encoding="utf-8") as f:
-        json.dump(state, f, ensure_ascii=False, indent=2)
+    if redis_client:
+        try:
+            redis_client.set("bot_state", json.dumps(state, ensure_ascii=False))
+        except Exception as e:
+            print(f"Error saving to Redis: {e}")
+    else:
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(state, f, ensure_ascii=False, indent=2)
 
 def extract_guia_from_url(url):
     try:
