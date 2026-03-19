@@ -192,7 +192,7 @@ Este bot rastrea tus paquetes de Zoom y te notifica cuando haya cambios.
 async def rastrear(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "📦 Por favor, <b>envía el link de tracking</b> de Zoom.\n\n"
-        "Ejemplo: https://zoom.red/tracking-de-envios-personas/?nro-guia=1653550139...",
+        "Ejemplo: https://zoom.red/tracking-de-envios-personas/?nro-guia=1653550500...",
         parse_mode="HTML"
     )
     return AWAITING_LINK
