@@ -212,6 +212,7 @@ async def receive_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         save_package_state(guia_hash, data, current_hash, url)
         
+        state = load_state()
         package_key = str(chat_id)
         if "tracking_tasks" not in state:
             state["tracking_tasks"] = {}
