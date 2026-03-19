@@ -69,22 +69,19 @@ def save_state(state):
 def extract_guia_from_url(url):
     try:
         if "nro-guia=" in url:
-            import re
-            match = re.search(r'nro-guia=(\d+)', url)
-            if match:
-                return match.group(1)
+            return url.split("nro-guia=")[1].split("&")[0]
         if "codigo=" in url:
-            return url.split("codigo=")[1].split("&")[0][:20] + "..."
-        return "Desconocido"
+            return url.split("codigo=")[1].split("&")[0]
+        return "N/A"
     except:
-        return "Desconocido"
+        return "N/A"
 
 def fetch_page(url):
     response = requests.get(url, headers=HEADERS, timeout=60)
     response.raise_for_status()
     return response.text
 
-def parse_tracking(html):
+def parse_tracking(html, url=""):
     soup = BeautifulSoup(html, "html.parser")
     data = {
         "eventos": [],
@@ -96,7 +93,12 @@ def parse_tracking(html):
     
     guia_elem = soup.find("input", {"name": "nro-guia"}) or soup.find("input", {"id": "nro-guia"})
     if guia_elem:
-        data["numero_guia"] = guia_elem.get("value", "N/A")
+        val = guia_elem.get("value", "N/A")
+        if val and val != "N/A":
+            data["numero_guia"] = val
+            
+    if (data["numero_guia"] == "N/A" or not data["numero_guia"]) and url:
+        data["numero_guia"] = extract_guia_from_url(url)
     
     tables = soup.find_all("table")
     for table in tables:
@@ -195,7 +197,7 @@ async def receive_link(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await update.message.reply_text("🔍 Verificando el enlace...")
         html = fetch_page(url)
-        data = parse_tracking(html)
+        data = parse_tracking(html, url)
         
         guia_hash = hashlib.md5(url.encode()).hexdigest()
         current_hash = get_state_hash(data)
@@ -385,7 +387,7 @@ async def track_single_package(bot, chat_id, guia_hash, pkg_info):
     
     try:
         html = fetch_page(url)
-        data = parse_tracking(html)
+        data = parse_tracking(html, url)
         current_hash = get_state_hash(data)
         
         save_package_state(guia_hash, data, current_hash, url)
